@@ -1,0 +1,82 @@
+package com.frankmoley.security.app;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
+import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+
+import com.frankmoley.security.app.auth.LandonUserDetailsService;
+
+/*
+ * Refer: https://www.lynda.com/Web-tutorials/Spring-Spring-Security/704153-2.html 
+ */
+
+@Configuration			// security config file for our project	
+@EnableWebSecurity		//enable security 
+@EnableGlobalMethodSecurity(prePostEnabled = true)		//to enable our method level security
+public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapter{
+
+	@Autowired
+	private LandonUserDetailsService userDetailsService;
+	
+	@Override
+	protected void configure(HttpSecurity http) throws Exception {
+		http.csrf().disable()								//prevent from Cross-site request forgery exploit
+		    .authorizeRequests()							//autorize requests ro root(/), index, css and js files 
+		    .antMatchers("/","/index","/css/*","/js/*").permitAll()
+			.anyRequest().authenticated()					//authenticate any other request (other than mentioned above)
+			.and()
+			.httpBasic();									//use http basic authentication
+	}
+	
+	@Bean
+	public GrantedAuthoritiesMapper authoritiesMapper() {
+		SimpleAuthorityMapper authorityMapper = new SimpleAuthorityMapper();
+		authorityMapper.setConvertToUpperCase(true);
+		authorityMapper.setDefaultAuthority("USER");
+		return authorityMapper;
+	}
+
+	@Bean
+	public DaoAuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+		provider.setUserDetailsService(userDetailsService);
+		//provider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());  //NoOpPasswordEncoder -> plaintext password encoder (Not for production )
+		provider.setPasswordEncoder(new BCryptPasswordEncoder(10));			//hashed password 10 times
+		provider.setAuthoritiesMapper(authoritiesMapper());
+		return provider;
+	}
+	
+	@Override
+	protected void configure(AuthenticationManagerBuilder auth) throws Exception{
+		auth.authenticationProvider(authenticationProvider());
+	}
+	
+	
+	/*
+	 * In memory-authentication (NOT FOR PRODUCTION USE)
+	 * 1. Set default list of users with credentials
+	 * 2. Spring security will not prompt a default password after setting in memory authentication
+	 */
+//	@Bean
+//	@Override
+//	public UserDetailsService userDetailsServiceBean() throws Exception {
+//		List<UserDetails> users = new ArrayList<>();
+//		users.add(User.withDefaultPasswordEncoder().username("admin").password("password").roles("USER","ADMIN").build());
+//		users.add(User.withDefaultPasswordEncoder().username("user").password("password").roles("USER").build());
+//		return new InMemoryUserDetailsManager(users);
+//	}
+
+
+	 
+	
+}
