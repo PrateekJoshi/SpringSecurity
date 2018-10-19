@@ -13,6 +13,7 @@ import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMap
 import org.springframework.security.core.authority.mapping.SimpleAuthorityMapper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.frankmoley.security.app.auth.LandonUserDetailsService;
 
@@ -35,10 +36,27 @@ public class ApplicationSecurityConfiguration extends WebSecurityConfigurerAdapt
 		    .antMatchers("/","/index","/css/*","/js/*").permitAll()
 			.anyRequest().authenticated()					//authenticate any other request (other than mentioned above)
 			.and()
-			.httpBasic();									//use http basic authentication
+			//.httpBasic();									//use http basic authentication
+			.formLogin()									//set form based authentication
+			.loginPage("/login").permitAll()				//set our custom login page
+			.and()
+			.logout().invalidateHttpSession(true)			//on logout invalidate session
+			.clearAuthentication(true)						//clear authentication
+			.logoutRequestMatcher(new AntPathRequestMatcher("/logout"))					//set logout page
+			.logoutSuccessUrl("/logout-success").permitAll();							//on successfull logout, load this page
+			
+			
 	}
 	
-	@Bean
+	/*
+	 * -> In our methods we have set roles to ROLE_USER and ROLE_ADMIN but in our database we have set roles to
+	 * USER and ADMIN, so we need to map those two roles.
+	 * -> SimpleAuthorityMapper() fetch the value of role (say USER or ADMIN) from database and append ROLE_ 
+	 *    to beginning of it (ie ROLE_USER and ROLE_ADMIN). 
+	 * -> To map correctly with database , we have converted fetched value from database to upper case using
+	 *    setConvertToUpperCase(true).		   
+	 */
+	@Bean   
 	public GrantedAuthoritiesMapper authoritiesMapper() {
 		SimpleAuthorityMapper authorityMapper = new SimpleAuthorityMapper();
 		authorityMapper.setConvertToUpperCase(true);

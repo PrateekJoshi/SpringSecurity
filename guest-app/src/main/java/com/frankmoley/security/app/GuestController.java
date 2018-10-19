@@ -35,7 +35,12 @@ public class GuestController {
     }
 
     
-    @GetMapping(value="/guests")
+    @GetMapping(value="/login")
+    public String getLoginPage(Model model) {
+    	return "login";
+    }
+    
+    @GetMapping(value="/guests")					
     @PreAuthorize("hasRole('ROLE_USER')")			//locked method according to role USER
     public String getGuests(Model model){
         List<Guest> guests = this.guestService.getAllGuests();

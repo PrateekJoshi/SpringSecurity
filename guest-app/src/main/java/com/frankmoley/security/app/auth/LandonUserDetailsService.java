@@ -19,6 +19,12 @@ public class LandonUserDetailsService implements UserDetailsService{
 		this.authGroupRepository = authGroupRepository;
 	}
 	
+	/* -> loadUserByUsername() will get user from repo. Also , it will get auth group of the user
+	 * from the auth repo. 
+	 * -> Using the user and user auth , it applies the security principals on the user by calling
+	 *    LandonUserPrincipal(user,authGroup)
+	 */
+	
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user = userRepository.findByUsername(username);

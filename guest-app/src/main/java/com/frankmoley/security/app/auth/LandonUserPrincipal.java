@@ -1,6 +1,5 @@
 package com.frankmoley.security.app.auth;
 
-import java.security.acl.Group;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -11,6 +10,11 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+/*
+ * -> Spring security relies on principals not users
+ * -> This class will implement UserDetails
+ * -> This principal class gets user and user auth group and apply security prinicapls on them
+ */
 
 public class LandonUserPrincipal implements UserDetails{
 
